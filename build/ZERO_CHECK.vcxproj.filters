@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\SIEMENS\Desktop\Zarattini_Andrea\Semaforo_QML_CPP\build\CMakeFiles\9c790227f1b4fa65b0d95eedb00e32f9\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{F9A50FAC-61C0-3B0D-AC11-CE027417552F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
