@@ -1,3 +1,3 @@
 C:/Users/SIEMENS/Desktop/Zarattini_Andrea/Semaforo_QML_CPP/build/CMakeFiles/Semaforo_QML_CPP.dir
-C:/Users/SIEMENS/Desktop/Zarattini_Andrea/Semaforo_QML_CPP/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/SIEMENS/Desktop/Zarattini_Andrea/Semaforo_QML_CPP/build/CMakeFiles/ZERO_CHECK.dir
+C:/Users/SIEMENS/Desktop/Zarattini_Andrea/Semaforo_QML_CPP/build/CMakeFiles/edit_cache.dir
+C:/Users/SIEMENS/Desktop/Zarattini_Andrea/Semaforo_QML_CPP/build/CMakeFiles/rebuild_cache.dir
