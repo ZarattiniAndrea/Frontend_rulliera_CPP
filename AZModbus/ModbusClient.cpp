@@ -94,6 +94,22 @@ bool ModbusClient::readCoils(uint16_t startAddress, uint16_t quantity, vector<bo
         cerr << "Errore connessione al server Modbus con indirizzo " << ipAddress_ << " sulla porta " << port_ << endl;
         return false; 
     }
+    // Costruzione del MBAP (Modbus Application Protocol Header)
+    /*
+    FORMATO DEL MBAP:
+    - Transaction Identifier: 2 byte (identificativo della transazione, abbina richieste e risposte)
+    - Protocol Identifier: 2 byte (identifica il protocollo)
+    - Length: 2 byte (lunghezza del messaggio che segue)
+    - Unit Identifier: 1 byte (identifica il dispositivo slave)
+    */
+    unsigned char mbap[7];
+    mbap[0] = 0x0000; // Id alto
+    mbap[1] = 0x0001; // Id basso
+    mbap[2] = 0x0000; // Protocol Id alto
+    mbap[3] = 0x0000; // Protocol Id basso
+    mbap[4] = 0x0000; // Lunghezza alto
+    mbap[5] = 0x0006; // Lunghezza basso (6 byte seguono: 1 unit ide e 5 PDU)
+    mbap[6] = 0x01;
     // Costruzione PDU: function code + start address + quantità (PDU = Protocol Data Unit, sostanzialmente il pacchetto di dati)
     /* FORMATO DEL MESSAGGIO di richiesta Read Coils: 
     - Function Code: 1 byte (0x01 per Read Coils)
@@ -117,11 +133,15 @@ bool ModbusClient::readCoils(uint16_t startAddress, uint16_t quantity, vector<bo
         return false;
     }
 
+    // Costruzione del messaggio completo (MBAP + PDU)
+    unsigned char message[sizeof(mbap) + sizeof(pdu)]; // definiso la dimensione totale
+    memcpy(message, mbap, sizeof(mbap)); // copio il MBAP all'inizio del messaggio 
+    memcpy(message + sizeof(mbap), pdu, sizeof(pdu)); // Copio il PDU a seguire
 
     // Invio della richiesta al server
     int totalbytes = 0; // per tenere traccia del numero totale di byte inviati
-    for(; totalbytes < sizeof(pdu);){
-        int bytesInviati = send(sock_, reinterpret_cast<const char*>(pdu), sizeof(pdu), 0); // reinterpret_cast serve per convertire il puntatore a pdu in un puntatore a char
+    for(; totalbytes < sizeof(message);){
+        int bytesInviati = send(sock_, reinterpret_cast<const char*>(message), sizeof(message), 0); // reinterpret_cast serve per convertire il puntatore a pdu in un puntatore a char
         if(bytesInviati < 0){
             cerr << "Errore nell'invio della richiesta di Read Coils al server: " << endl;
             int err = WSAGetLastError();
