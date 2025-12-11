@@ -7,6 +7,12 @@
     #include <arpa/inet.h>
     #include <unistd.h>
 #endif
+//Se siamo su Windows, definisco sock_ come SOCKET, altrimenti come int. 
+#ifdef _WIN32
+    SOCKET sock_;
+#else
+    int sock_;
+#endif
 #include "ModbusClient.h"
 #include <string>
 #include <iostream>
@@ -38,8 +44,12 @@ bool ModbusClient::connetti() {
 
     sock_ = ::socket(AF_INET, SOCK_STREAM, 0); // Creo il socket. AF_INET --> IPv4,
                                              // SOCK_STREAM --> i pacchetti sono di tipo stream (TCP)
-    if(sock_<0){
+    if(sock_ < 0){
         cerr << "Errore nella creazione della socket" << endl;
+        return false;
+    }
+    if(sock_ == INVALID_SOCKET){
+        cerr << "Errore nella creazione della socket: " << WSAGetLastError() << endl;
         return false;
     }
     
@@ -55,6 +65,7 @@ bool ModbusClient::connetti() {
         return false;
     }
 
+    cout << "Connessione al server Modbus avvenuta con successo!" << endl;
     connected_ = true;
     return true;
 }
@@ -83,7 +94,7 @@ bool ModbusClient::readCoils(uint16_t startAddress, uint16_t quantity, vector<bo
         cerr << "Errore connessione al server Modbus con indirizzo " << ipAddress_ << " sulla porta " << port_ << endl;
         return false; 
     }
-    // Costruzione PDU: function code + start address + quantità
+    // Costruzione PDU: function code + start address + quantità (PDU = Protocol Data Unit, sostanzialmente il pacchetto di dati)
     /* FORMATO DEL MESSAGGIO di richiesta Read Coils: 
     - Function Code: 1 byte (0x01 per Read Coils)
     - Starting Address: 2 byte
@@ -100,12 +111,27 @@ bool ModbusClient::readCoils(uint16_t startAddress, uint16_t quantity, vector<bo
     pdu[3] = (quantity >> 8) & 0xFF; // Byte alto della quantità di coil da leggere
     pdu[4] = quantity & 0xFF; // Byte basso della quantità di coil da leggere
 
-    // Invio della richiesta al server
-    int bytesInviati = send(sock_, reinterpret_cast<const char*>(pdu), sizeof(pdu), 0); // reinterpret_cast serve per convertire il puntatore a pdu in un puntatore a char
-    if(bytesInviati != sizeof(pdu)){
-        cerr << "Errore nell'invio della richiesta di Read Coils al server" << endl;
+    // Prima di inviare i dati, mi assicuro che la socket sia valida
+    if(sock_ == INVALID_SOCKET){
+        cerr << "Socket non valida" << endl;
         return false;
     }
+
+
+    // Invio della richiesta al server
+    int totalbytes = 0; // per tenere traccia del numero totale di byte inviati
+    for(; totalbytes < sizeof(pdu);){
+        int bytesInviati = send(sock_, reinterpret_cast<const char*>(pdu), sizeof(pdu), 0); // reinterpret_cast serve per convertire il puntatore a pdu in un puntatore a char
+        if(bytesInviati < 0){
+            cerr << "Errore nell'invio della richiesta di Read Coils al server: " << endl;
+            int err = WSAGetLastError();
+            cerr << "Codice errore: " << err << endl;
+            return false;
+        }
+        totalbytes += bytesInviati;
+    }
+    cout << "Richista di read coils inviata con successo." << endl;
+
 
     // Ricezione della risposta dal server
     // La risposta ha il seguente formato:
@@ -114,6 +140,7 @@ bool ModbusClient::readCoils(uint16_t startAddress, uint16_t quantity, vector<bo
     - Byte Count: 1 byte (numero di byte dei dati)
     - Stato dei Coil: N byte (ogni bit è lo stato di un coil)
     */
+    cout << "Ricevo la risposta dal server..." << endl;
     unsigned char header[2]; // Header del messaggio di risposta
     int bytesRicevuti = recv(sock_, reinterpret_cast<char*>(header), sizeof(header), 0);
     if(bytesRicevuti != sizeof(header)){

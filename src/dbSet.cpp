@@ -50,7 +50,7 @@ void dbSet(){
         cerr << "Errore nella creazione della tabella: " << errMsg << endl;
         sqlite3_free(errMsg); // libero la memoria allocata per il messaggio di errore
     }else{
-        cout << "Tabella RULLIERE creata con successo (o già esistente)." << endl;
+        cout << "Tabella RULLIERE creata con successo (o preesistente)." << endl;
     }
 
     sql = "INSERT INTO rulliera VALUES (1, 0, CURRENT_TIMESTAMP, 'VUOTA', 0, 0, 'TERMINATO');";

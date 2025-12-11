@@ -1,6 +1,16 @@
 #pragma once
 #ifndef MODBUSCLIENT_H
 #define MODBUSCLIENT_H
+#ifdef _WIN32
+    #include <winsock2.h>
+    #pragma comment(lib, "ws2_32.lib") //linko la libreria di Winsock
+    typedef SOCKET socketType;
+#else
+    #include <sys/socket.h>
+    #include <arpa/inet.h>
+    #include <unistd.h>
+    typedef int socketType;
+#endif
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -19,7 +29,7 @@ class ModbusClient {
     private:
         string ipAddress_;
         uint16_t port_;
-        int sock_;
+        socketType sock_;
         bool connected_;
 };
 #endif // MODBUSCLIENT_H

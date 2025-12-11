@@ -3,21 +3,27 @@
 #include <thread>
 #include "Persona.h"
 #include "dbSet.h"
+#include "rulliera.h"
 using namespace std;
 
 //creo una funzione
-void for_thread(Persona obj){
-    cout << "Thread in esecuzione. " << endl;
-    obj.saluta();
+/*
+void for_thread(Rulliera rull){
+    cout << "Passo la rulliera al thread." << endl;
+    rull.pezzi_iniziali();
+    rull.pezzi_presenti();
 }
-
+*/
 int main() {
     thread t1; //dichiaro un thread
-    Persona p("Andrea", 26);
+    Rulliera rull(1);
     dbSet(); //inizializzo il database
     cout << "Sono il main thread." << endl;
-    t1 = thread(for_thread, p); //avvio il thread passando la funzione e l'oggetto
-    t1.join(); //aspetto la fine del thread
+    cout << "Inizializzo i pezzi della rulliera." <<endl;
+    rull.pezzi_iniziali();
+    cout << "Avvio la lettura dei pezzi presenti sulla rulliera." << endl;
+    rull.pezzi_presenti();
+    //t1.join(); //aspetto la fine del thread
     //p.saluta();
 
     return 0;
