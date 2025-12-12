@@ -161,16 +161,13 @@ bool ModbusClient::readCoils(uint16_t startAddress, uint16_t quantity, vector<bo
     - Stato dei Coil: N byte (ogni bit è lo stato di un coil)
     */
     cout << "Ricevo la risposta dal server..." << endl;
-    unsigned char header[2]; // Header del messaggio di risposta
+    unsigned char header[2]; // Function Code + Byte Count
     int bytesRicevuti = recv(sock_, reinterpret_cast<char*>(header), sizeof(header), 0);
     if(bytesRicevuti != sizeof(header)){
         cerr << "Errore nella ricezione dell'header del messaggio di risposta dal server" << endl;
         return false;
     }
-    if(header[0] != 0x01){
-        cerr << "Errore: Function Code nella risposta non corrisponde alla richiesta" << endl;
-        return false;
-    }
+    
     unsigned char byteCount = header[1]; // Numero di byte dei dati
     vector<unsigned char> data(byteCount);
     bytesRicevuti = recv(sock_, reinterpret_cast<char*>(data.data()), static_cast<int>(byteCount), 0);
