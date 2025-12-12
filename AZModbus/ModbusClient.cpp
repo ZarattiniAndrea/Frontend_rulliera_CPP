@@ -160,6 +160,25 @@ bool ModbusClient::readCoils(uint16_t startAddress, uint16_t quantity, vector<bo
     - Byte Count: 1 byte (numero di byte dei dati)
     - Stato dei Coil: N byte (ogni bit è lo stato di un coil)
     */
+    unsigned char responseHeader[7]; // MBAP header
+    int bytesRicevutiHeader = recv(sock_, reinterpret_cast<char*>(responseHeader), sizeof(responseHeader), 0);
+    if(bytesRicevutiHeader != sizeof(responseHeader)){
+        cerr << "Errore nella ricezione dell'header del messaggio di risposta dal server" << endl;
+        return false;
+    }
+    /*
+    Lo shifting di responseHeader di 8 bit serve per fare "spazio" al successivo byte basso. 
+    La successiva operazione di OR fa in modo di mantenere i bit a 1 nella parte alta del byte intero (primi 8 bit) e di inserire ciò 
+    che serve nella parte bassa del byte intero (successivi 8 bit), in questo modo combinandoli.
+    */
+    int TransactionID = (responseHeader[0] << 8) | responseHeader[1];
+    int ProtocolID = (responseHeader[2] << 8) | responseHeader[3];
+    int Lunghezza = (responseHeader[4] << 8) | responseHeader[5];
+    int UnitID = responseHeader[6];
+
+    // Ora leggo il PDU della risposta
+    // - Function Code: 1 byte
+    // - Byte Count: 1 byte
     cout << "Ricevo la risposta dal server..." << endl;
     unsigned char header[2]; // Function Code + Byte Count
     int bytesRicevuti = recv(sock_, reinterpret_cast<char*>(header), sizeof(header), 0);
@@ -186,7 +205,7 @@ bool ModbusClient::readCoils(uint16_t startAddress, uint16_t quantity, vector<bo
         data - array di byte ricevuti dal server
         byteIndex - indice del byte corrente
         bitIndex - indice del bit corrente
-        (1 << butIndex) - prendo il numero 1 e lo sposta a sinistra di bitIndex posizioni, 
+        (1 << bitIndex) - prendo il numero 1 e lo sposta a sinistra di bitIndex posizioni, 
         creando così una maschera che, quando applicata con l'operatore AND (&) al byte corrente,
         mi permette di isolare il bit di interesse.
         */
